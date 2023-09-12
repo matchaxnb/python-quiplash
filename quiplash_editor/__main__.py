@@ -31,7 +31,7 @@ def to_v1_jet(orig_file, v1_output):
         fh.write(reader.serialize())
 
 def to_v1_csv(orig_file, v1_csv_output):
-    """Convert to V3 CSV"""
+    """Convert to V1 CSV"""
     reader = QuiplashReaderV1(orig_file)
     reader.serialize_to_csv(v1_csv_output, to_version=1)
 

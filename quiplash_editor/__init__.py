@@ -167,13 +167,14 @@ class QuipPromptV3(QuipPromptBase):
     @classmethod
     def from_csv_entry(cls, entry: dict):
         """build a QuipPromptV3 from a CSV entry"""
+        prompt = entry.get('prompt').replace('<ANY PLAYER>', '<ANYPLAYER>')
         return cls(
             id=entry.get("id"),
-            includes_player_name=entry.get("includes_player_name"),
-            prompt=entry.get("prompt"),
-            safety_quips=[entry.get(f"safety_quip_{a}") for a in range(1, 4)],
-            us=entry.get("us"),
-            x=entry.get("x"),
+            includes_player_name=entry.get("includes_player_name", '<ANYPLAYER>' in prompt),
+            prompt=prompt,
+            safety_quips=[entry.get(f"safety_quip_{a}", SAFETY_QUIPS_DEFAULT[a - 1]) for a in range(1, 4)],
+            us=entry.get("us", False),
+            x=entry.get("x", False),
         )
 
 
