@@ -96,8 +96,8 @@ class QuipPromptV1(QuipPromptBase):
     id: int
 
     @classmethod
-    def from_pet_entry(cls, entry: dict):
-        """build a QuipPromptV1 from a .pet entry
+    def from_jet_entry(cls, entry: dict):
+        """build a QuipPromptV1 from a .jet entry
 
         Takes care of converting whatever is missing"""
         ver = infer_prompt_version(entry)
@@ -114,7 +114,7 @@ class QuipPromptV1(QuipPromptBase):
                 f"Can't convert to QuipPromptV1 from ver {ver}"
             )
 
-    def to_pet_entry(self):
+    def to_jet_entry(self):
         """Convert QuipPromptV1 object to entry in Quiplash and Quiplash 2 PET format"""
         return {"id": self.id, "prompt": self.prompt, "x": self.x}
 
@@ -137,7 +137,7 @@ class QuipPromptV3(QuipPromptBase):
     safety_quips: List[str]
     us: bool
 
-    def to_pet_entry(self):
+    def to_jet_entry(self):
         """Convert QuipPromptV3 object to entry in Quiplash 3 PET format"""
         return {
             "id": self.id,
@@ -149,8 +149,8 @@ class QuipPromptV3(QuipPromptBase):
         }
 
     @classmethod
-    def from_pet_entry(cls, entry: dict):
-        """build a QuipPromptV3 from a .pet entry
+    def from_jet_entry(cls, entry: dict):
+        """build a QuipPromptV3 from a .jet entry
 
         Takes care of converting whatever is missing"""
         q = cls(
@@ -192,15 +192,15 @@ class QuiplashReader:
         """the quip prompts that this reader holds"""
         return self._quip_prompts
 
-    def __init__(self, pet_path=None, csv_path=None):
+    def __init__(self, jet_path=None, csv_path=None):
         self._quip_prompts = []
         self._csv_fields = []
-        if pet_path:
-            self.load_pet(pet_path)
+        if jet_path:
+            self.load_jet(jet_path)
         if csv_path:
             self.load_csv(csv_path)
 
-    def load_pet(self, path):
+    def load_jet(self, path):
         """load a PET file"""
         with open(path, "rb") as fh:
             self._data = json.load(fh)
@@ -224,12 +224,12 @@ class QuiplashReader:
         """load Quiplash file"""
 
     def serialize(self, to_version=None):
-        """Generate a serialized .pet from the contents"""
+        """Generate a serialized .jet from the contents"""
         return (
             json.dumps(
                 {
                     "content": [
-                        a.to_version(self.target_version).to_pet_entry()
+                        a.to_version(self.target_version).to_jet_entry()
                         for a in self.quip_prompts
                     ]
                 },
@@ -259,10 +259,10 @@ class QuiplashReader:
                 csvwriter.writerow(as_csv_dict(quip_prompt))
 
     @classmethod
-    def from_pet_file(cls, path):
-        """load QuiplashReader from Quiplash pet datafile"""
+    def from_jet_file(cls, path):
+        """load QuiplashReader from Quiplash jet datafile"""
         c = cls()
-        c.load_pet(path)
+        c.load_jet(path)
         return c
 
     @classmethod
@@ -281,7 +281,7 @@ class QuiplashReaderV3(QuiplashReader):
     def read(self):
         contents = self._data["content"]
         for item in contents:
-            self._quip_prompts.append(QuipPromptV3.from_pet_entry(item))
+            self._quip_prompts.append(QuipPromptV3.from_jet_entry(item))
 
 
 class QuiplashReaderV1(QuiplashReader):
@@ -292,4 +292,4 @@ class QuiplashReaderV1(QuiplashReader):
     def read(self):
         contents = self._data["content"]
         for item in contents:
-            self._quip_prompts.append(QuipPromptV1.from_pet_entry(item))
+            self._quip_prompts.append(QuipPromptV1.from_jet_entry(item))
