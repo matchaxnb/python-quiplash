@@ -209,7 +209,7 @@ class QuiplashReader:
 
     def load_csv(self, path):
         """load a CSV file"""
-        with open(path, newline="", encoding="utf-8") as fh:
+        with open(path, newline="", encoding="utf-8-sig") as fh:
             csvreader = csv.DictReader(fh)
             self._csv_fields = csvreader.fieldnames
             for row in csvreader:
@@ -253,7 +253,7 @@ class QuiplashReader:
             quip_keys.remove(field_name)
             for i in range(1, len(first_quip[field_name] + 1)):
                 quip_keys.append(f"{new_field_name}{i}")
-        with open(path, "w", newline="", encoding="utf-8") as csvfile:
+        with open(path, "w", newline="", encoding="utf-8-sig") as csvfile:
             csvwriter = csv.DictWriter(csvfile, dialect="excel", fieldnames=quip_keys)
             csvwriter.writeheader()
             for quip_prompt in self.quip_prompts:
