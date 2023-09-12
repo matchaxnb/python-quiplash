@@ -20,7 +20,19 @@ class UnsupportedConversionError(Exception):
     """Cannot convert prompt between these versions"""
 
 
+def normalize_prompt(prompt, version=None):
+    """normalize a prompt's markup"""
+    if version is None:
+        return prompt
+    elif version == 1:
+        return prompt.replace('<ANYPLAYER>', '<ANY PLAYER>')
+    elif version == 3:
+        return prompt.replace('<ANY PLAYER>', '<ANYPLAYER>')
+    else:
+        raise ValueError(f"Unknown version for normalize_prompt: {version}")
+
 def infer_prompt_version(prompt: dict):
+    """guess a prompt version based on its structure"""
     if "includes_player_name" in prompt:
         return 3
     elif all(a in prompt for a in ("id", "prompt", "x")):
@@ -56,13 +68,13 @@ class QuipPromptBase:
         return QuipPromptV1(
             id=int(self.id),
             x=self.x,
-            prompt=self.prompt.replace("<ANYPLAYER>", "<ANY PLAYER>"),
+            prompt=normalize_prompt(self.prompt, version=1),
         )
 
     def to_quiplashv3(self):
         """Provide a QuipPromptV3 version of a prompt"""
         if isinstance(self, QuipPromptV1):
-            prompt = self.prompt.replace("<ANY PLAYER>", "<ANYPLAYER>")
+            prompt = normalize_prompt(prompt, version=3)
             includes_player_name = "<ANYPLAYER>" in prompt
             return QuipPromptV3(
                 id=str(self.id),
@@ -106,7 +118,7 @@ class QuipPromptV1(QuipPromptBase):
         elif ver == 3:
             return cls(
                 id=int(entry["id"]),
-                prompt=entry["prompt"].replace("<ANYPLAYER>", "<ANY PLAYER>"),
+                prompt=normalize_prompt(entry["prompt"], version=1),
                 x=bool(entry["prompt"]),
             )
         else:
@@ -123,7 +135,7 @@ class QuipPromptV1(QuipPromptBase):
         """build a QuipPromptV1 from a CSV entry"""
         return cls(
             id=int(entry.get("id")),
-            prompt=entry.get("prompt").replace("<ANYPLAYER>", "<ANY PLAYER>"),
+            prompt=normalize_prompt(entry.get("prompt"), version=1),
             x=bool(entry.get("x")),
         )
 
@@ -156,7 +168,7 @@ class QuipPromptV3(QuipPromptBase):
         q = cls(
             id=entry.get("id"),
             includes_player_name=entry.get("includesPlayerName", False),
-            prompt=entry.get("prompt").replace("<ANY PLAYER>", "<ANYPLAYER>"),
+            prompt=normalize_prompt(entry.get("prompt"), version=3),
             safety_quips=entry.get("safetyQuips", list(SAFETY_QUIPS_DEFAULT)),
             us=entry.get("us", False),
             x=entry.get("x"),
@@ -167,7 +179,7 @@ class QuipPromptV3(QuipPromptBase):
     @classmethod
     def from_csv_entry(cls, entry: dict):
         """build a QuipPromptV3 from a CSV entry"""
-        prompt = entry.get('prompt').replace('<ANY PLAYER>', '<ANYPLAYER>')
+        prompt = normalize_prompt(entry.get('prompt'), version=3)
         return cls(
             id=entry.get("id"),
             includes_player_name=entry.get("includes_player_name", '<ANYPLAYER>' in prompt),
